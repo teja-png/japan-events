@@ -1,0 +1,86 @@
+{{define "layout"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Finder</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <header>
+        <h1>Event Finder</h1>
+        <form action="/" method="POST">
+            <label for="search_date">Date:</label>
+            <input type="date" id="search_date" name="search_date" value="{{.SearchDate}}">
+            
+            <label for="search_location">Location:</label>
+            <input type="text" id="search_location" name="search_location" placeholder="Enter location" value="{{.SearchLocation}}" autocomplete="off">
+            <ul id="suggestions"></ul>
+            
+            <button type="submit">Search</button>
+        </form>
+    </header>
+    <main>
+        {{if .IsSearching}}
+            {{if len .Events}}
+                <h2>Search Results:</h2>
+                {{if .SearchDate}}<p>Date: {{.SearchDate}}</p>{{end}}
+                {{if .SearchLocation}}<p>Location: {{.SearchLocation}}</p>{{end}}
+                {{template "content" .Events}}
+            {{else}}
+                <p class="no-events">No events found matching your search criteria.</p>
+            {{end}}
+        {{else}}
+            <h2>All Events:</h2>
+            {{template "content" .Events}}
+        {{end}}
+    </main>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+    const locationInput = document.getElementById('search_location');
+    const suggestionsList = document.getElementById('suggestions');
+
+    // Function to adjust the width of the suggestions list
+    function adjustSuggestionsWidth() {
+        suggestionsList.style.width = `${locationInput.offsetWidth}px`;
+    }
+
+    // Adjust the width initially
+    adjustSuggestionsWidth();
+
+    // Adjust the width on window resize
+    window.addEventListener('resize', adjustSuggestionsWidth);
+
+    locationInput.addEventListener('input', function() {
+        const query = this.value.trim();
+        if (query.length > 1) {
+            fetch(`/suggest?q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    suggestionsList.innerHTML = '';
+                    data.forEach(suggestion => {
+                        const li = document.createElement('li');
+                        li.textContent = suggestion;
+                        li.addEventListener('click', function() {
+                            locationInput.value = this.textContent;
+                            suggestionsList.innerHTML = '';
+                        });
+                        suggestionsList.appendChild(li);
+                    });
+                });
+        } else {
+            suggestionsList.innerHTML = '';
+        }
+    });
+
+    document.addEventListener('click', function(e) {
+        if (e.target !== locationInput && e.target !== suggestionsList) {
+            suggestionsList.innerHTML = '';
+        }
+    });
+    });
+    </script>
+</body>
+</html>
+{{end}}
