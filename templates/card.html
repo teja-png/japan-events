@@ -1,0 +1,9 @@
+{{define "card"}}
+<div class="event-card">
+    <img src="/static/images/{{.Image}}" alt="{{.Title}}">
+    <h2>{{.Title}}</h2>
+    <p>Organizer: {{.Organizer}}</p>
+    <p>Location: {{.Location}}</p>
+    <p>Time: {{.Time.Format "Jan 02, 2006 15:04"}}</p>
+</div>
+{{end}}
